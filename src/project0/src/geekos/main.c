@@ -21,8 +21,10 @@
 #include <geekos/timer.h>
 #include <geekos/keyboard.h>
 
+#define ASCII_MASK 0x00ff
+#define EXIT_KEY   0x0064
 
-
+static void MyHello(ulong_t arg);
 
 /*
  * Kernel C code entry point.
@@ -47,16 +49,41 @@ void Main(struct Boot_Info* bootInfo)
     Print("Welcome to GeekOS!\n");
     Set_Current_Attr(ATTRIB(BLACK, GRAY));
 
+    Start_Kernel_Thread(MyHello, 0, PRIORITY_NORMAL, true);
 
-    TODO("Start a kernel thread to echo pressed keys and print counts");
-
+//  TODO("Start a kernel thread to echo pressed keys and print counts");
+    
 
 
     /* Now this thread is done. */
     Exit(0);
 }
 
+static void MyHello(ulong_t arg)
+{
+    bool end = false;
+    Keycode keycode;
 
+    Print("Hello World, my name is: ");
+    
+    while(!end)
+    {
+        keycode = Wait_For_Key();
+        if((keycode & KEY_RELEASE_FLAG) != KEY_RELEASE_FLAG)
+        {
+            if(((keycode & KEY_CTRL_FLAG) == KEY_CTRL_FLAG) &&
+               ((keycode & ASCII_MASK) == EXIT_KEY))
+            {
+                end = true;
+            }
+            else
+            {
+                Put_Char(keycode);
+            }
+        }
+    }
+    Print("\nEXIT\n");
+}
 
 
 
